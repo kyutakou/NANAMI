@@ -1,0 +1,31 @@
+# Environments and editors
+.venv/
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+frontend/dist/
+.env
+
+# Footage, evidence, databases (never commit)
+data/database/*
+data/evidence/*
+!data/database/.gitkeep
+!data/evidence/.gitkeep
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.db
+*.sqlite
+
+# Model weights (large, and carry their own licenses; fetched by script)
+*.onnx
+*.pt
+*.pth
+*.tflite
+*.pb
+*.safetensors
