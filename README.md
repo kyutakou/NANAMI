@@ -30,8 +30,6 @@ NANAMI is a classroom computer-vision research project designed to detect people
 
 It uses local inference and anonymous tracking rather than facial recognition or personal identity identification.
 
-> "A quiet little witness, not a judge."
-
 ### ♡ Design philosophy
 
 - **Privacy first.** No facial recognition or identity inference.
