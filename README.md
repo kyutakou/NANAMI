@@ -9,7 +9,7 @@ It detects people and tracks movement to help a human reviewer notice possible i
 
 ---
 
-## ✨ What it is
+## What it is
 
 - 🎥 Runs on **consented classroom footage only**
 - 🧠 Detects people with **YOLOX‑Tiny ONNX** on CPU
@@ -18,7 +18,7 @@ It detects people and tracks movement to help a human reviewer notice possible i
 - 📊 Will surface short, reviewable clips for a human to verify
 - 🔒 **Local first** — no footage leaves the machine by default
 
-## 🚫 What it is *not*
+## What it is *not*
 
 - ❌ Not a face‑recognition system
 - ❌ Not an identity database
@@ -30,7 +30,7 @@ Every alert is a **suggestion for a human to review**, never an automatic conclu
 
 ---
 
-## 🧰 Current stack
+## Current stack
 
 | Layer | Choice |
 |---|---|
@@ -46,7 +46,7 @@ Every alert is a **suggestion for a human to review**, never an automatic conclu
 
 ---
 
-## 🗺️ Project status
+## Project status
 
 | Stage | Status |
 |---|---|
@@ -62,7 +62,7 @@ Every alert is a **suggestion for a human to review**, never an automatic conclu
 
 ---
 
-## 🚀 Quick start (for future me)
+## Quick start (for future me)
 
 ```bash
 # 1. clone
