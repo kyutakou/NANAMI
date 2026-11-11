@@ -1,24 +1,17 @@
- 
-<div align="center">
+ <div align="center">
 
 <img src="https://capsule-render.vercel.app/api?type=venom&color=0:FCE4EC,50:F48FB1,100:EC407A&height=220&section=header&text=NANAMI&fontSize=75&fontColor=FFFFFF&animation=fadeIn&fontAlignY=45&desc=classroom%20computer%20vision%20%7C%20privacy-first%20research&descAlignY=68&descSize=14" width="100%" />
 
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=14&duration=3000&pause=1000&color=EC6C9A&center=true&vCenter=true&width=550&lines=A+quiet+little+witness%2C+not+a+judge.;Computer+vision+with+privacy+in+mind.;Built+with+curiosity+%26+a+little+bit+of+pink." />
-
-<br/>
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=14&duration=3000&pause=1000&color=EC6C9A&center=true&vCenter=true&width=550&lines=Eyes+on+the+frame%2C+not+on+identity.;A+little+vision%2C+a+lot+of+curiosity.;Looking+closely+at+classroom+computer+vision." />
 
 [![Python](https://img.shields.io/badge/Python-3.11-EC8FB3?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![ONNX](https://img.shields.io/badge/ONNX-Runtime-F4A6C1?style=for-the-badge)](https://onnxruntime.ai/)
 [![Status](https://img.shields.io/badge/Status-In%20Development-EF80AA?style=for-the-badge)](https://github.com/kyutakou/NANAMI)
-[![License](https://img.shields.io/badge/License-TBD-F8BBD0?style=for-the-badge)](https://github.com/kyutakou/NANAMI)
+[![License](https://img.shields.io/badge/License-Not%20Yet%20Specified-F8BBD0?style=for-the-badge)](./docs/LICENSING.md)
 
-<br/>
+**A classroom computer-vision research project with a focus on privacy, observation, and responsible technology.**
 
-**classroom computer-vision that looks, but doesn't know you.**
-
-*A local-first, privacy-conscious classroom computer vision research project.*
-
-[Overview](#-overview) · [Architecture](#-architecture) · [Progress](#-development-progress) · [Setup](#-getting-started)
+[Overview](#-overview) · [Features](#-current-features) · [Architecture](#-architecture) · [Setup](#-getting-started) · [Ethics](#-privacy-and-ethics)
 
 </div>
 
@@ -26,263 +19,268 @@
 
 ## ୨୧ Overview
 
-NANAMI is a classroom computer-vision research project designed to detect people, track movement, and eventually assist human reviewers in examining potentially relevant classroom events.
+NANAMI is a student-led research project exploring how computer vision can assist in observing classroom environments.
 
-It uses local inference and anonymous tracking rather than facial recognition or personal identity identification.
+The project currently focuses on person detection using YOLOX-Tiny and ONNX Runtime. Future development may explore anonymous multi-person tracking, pose estimation, and research-oriented event analysis.
 
-### ♡ Design philosophy
+The goal is to study what computer vision can observe without attempting to identify who someone is.
 
-- **Privacy first.** No facial recognition or identity inference.
-- **Local-first.** Processing is designed to happen on the local machine.
-- **Human-centered.** Automated observations are never treated as proof of misconduct.
-- **Transparent.** Limitations and false detections must be acknowledged.
-- **Research-driven.** Every component should be tested and evaluated before integration.
+**Less identification, more investigation.**
 
-## ୨୧ What NANAMI can do
+## ♡ Current features
 
 | Feature | Status |
 |---|---|
-| YOLOX-Tiny person detection | Working |
-| ONNX CPU inference | Working |
-| ByteTrack-style tracking | Working |
-| Green bounding-box visualization | Working |
-| RTMPose-t pose estimation | Planned |
-| Behavioral analysis | Planned |
-| Backend | Planned |
-| Dashboard | Planned |
+| YOLOX-Tiny person detection | Implemented |
+| ONNX Runtime CPU inference | Implemented |
+| Image preprocessing and letterboxing | Implemented |
+| Non-maximum suppression | Implemented |
+| Bounding-box visualization | Implemented |
+| Anonymous multi-person tracking | In local development; not yet published |
+| Pose estimation | Planned |
+| Temporal analysis | Planned |
+| Backend and dashboard | Planned |
 
-### Current detection and tracking
+### Detection pipeline
 
-NANAMI currently combines:
+The publicly available detection implementation uses:
 
-- **YOLOX-Tiny ONNX** for person detection.
-- **ByteTrack-style tracking** using a custom implementation.
-- **OpenCV** for image processing and visualization.
+- **YOLOX-Tiny:** detects people in input images.
+- **ONNX Runtime:** runs model inference using the CPU execution provider.
+- **OpenCV:** handles image preprocessing and visualization.
+- **NumPy:** supports numerical operations and detection postprocessing.
 
-Current observed performance:
+The current detector draws green bounding boxes around detected people.
 
-| Metric | Result |
-|---|---|
-| Processing speed | ~13 FPS |
-| Detection visualization | Green bounding boxes |
-| Person identification | Not implemented |
-| Inference | CPU-based |
+### Preliminary performance
 
-*Performance is preliminary and may vary depending on hardware, input resolution, and the number of people in a frame.*
+A local test has produced an observed processing speed of approximately **13 FPS**.
+
+This is an early observation, not a standardized benchmark. Performance can vary depending on hardware, image resolution, and model configuration.
 
 ## ୨୧ Architecture
 
+The currently published detection pipeline:
+
 ```mermaid
 flowchart TD
-    A[Video Input] --> B[Frame Processing]
+    A[Input Image] --> B[Letterbox Preprocessing]
     B --> C[YOLOX-Tiny ONNX]
-    C --> D[Person Detection]
-    D --> E[ByteTrack-style Tracker]
-    E --> F[Anonymous Track Continuity]
-    F --> G[Visualization]
+    C --> D[Model Inference]
+    D --> E[Detection Postprocessing]
+    E --> F[Non-Maximum Suppression]
+    F --> G[Person Bounding Boxes]
+    G --> H[OpenCV Visualization]
 
-    G --> H[Future Pose Estimation]
-    H --> I[Future Analysis Layer]
-    I --> J[Human Review]
-    
     style A fill:#FCE4EC,stroke:#EC407A,color:#880E4F
     style C fill:#F8BBD0,stroke:#EC407A,color:#880E4F
-    style E fill:#F8BBD0,stroke:#EC407A,color:#880E4F
-    style J fill:#FCE4EC,stroke:#EC407A,color:#880E4F
+    style H fill:#FCE4EC,stroke:#EC407A,color:#880E4F
 ```
 
-## ୨୧ Tech stack
+Anonymous tracking is being developed separately and is not yet included in the published pipeline.
 
-| Layer | Technology |
+## ୨୧ Technology stack
+
+| Component | Technology |
 |---|---|
-| Primary language | Python 3.11 |
-| Environment | uv |
-| Detection | YOLOX-Tiny ONNX |
-| Tracking | Custom ByteTrack-style implementation |
-| Inference | ONNX Runtime (CPU) |
+| Programming language | Python |
+| Object detection | YOLOX-Tiny |
+| Model format | ONNX |
+| Inference | ONNX Runtime |
 | Image processing | OpenCV |
 | Numerical computing | NumPy, SciPy |
 | Testing | pytest |
-| Future pose estimation | RTMPose-t ONNX |
-| Frontend | Vite, React, TypeScript |
-| Development OS | Windows 10 |
+| Environment management | Python venv / pip |
+| Future frontend | React, Vite, TypeScript |
 
-## ୨୧ Development progress
+## ୨୧ Development roadmap
 
-<details open>
-<summary><b>Phase 1 — Person Detection</b> ♡ COMPLETE</summary>
+- [x] **Phase 1 — Person Detection**
+  - YOLOX-Tiny ONNX integration
+  - Detector interface
+  - Image preprocessing
+  - Detection postprocessing
+  - Bounding-box visualization
+  - Initial detector tests
 
-- YOLOX-Tiny ONNX integration.
-- Detector interface.
-- Person detection pipeline.
-- Initial automated detector tests.
-- Bounding-box visualization.
+- [ ] **Phase 2 — Anonymous Person Tracking**
+  - ByteTrack-style tracking implementation
+  - Detection-to-track association
+  - Multi-frame tracking
+  - Track continuity evaluation
+  - Multi-person testing
 
-</details>
+- [ ] **Phase 3 — Detection and Tracking Integration**
+  - Pipeline integration
+  - Performance evaluation
+  - Occlusion and tracking reliability tests
 
-<details open>
-<summary><b>Phase 2 — Person Tracking</b> ♡ WORKING</summary>
+- [ ] **Phase 4 — Pose Estimation**
+  - RTMPose integration
+  - Keypoint extraction
+  - Pose estimation validation
 
-- Custom ByteTrack-style tracker.
-- Detection-to-track association.
-- Multiple-frame tracking pipeline.
-- Green bounding-box visualization.
-- Initial tracking tests and debugging.
+- [ ] **Phase 5 — Research Analysis**
+  - Temporal observation
+  - Research-based analysis
+  - False-positive evaluation
+  - Human-verifiable outputs
 
-</details>
+- [ ] **Phase 6 — Backend and Dashboard**
+  - Backend development
+  - Dashboard interface
+  - Review workflow
+  - Results visualization
 
-<details open>
-<summary><b>Phase 3 — Integration and Testing</b> ♡ WORKING</summary>
-
-- Detection and tracking pipeline tested together.
-- Initial performance testing.
-- Approximately 13 FPS observed.
-- Further reliability and edge-case testing remains necessary.
-
-</details>
-
-<details>
-<summary><b>Phase 4 — Pose Estimation</b> ♡ PLANNED</summary>
-
-- RTMPose-t ONNX integration.
-- Keypoint extraction.
-- Pose estimation validation.
-
-</details>
-
-<details>
-<summary><b>Phase 5 — Analysis Layer</b> ♡ PLANNED</summary>
-
-- Temporal observation.
-- Research-based analysis.
-- False-positive evaluation.
-- Human-verifiable outputs.
-
-</details>
-
-<details>
-<summary><b>Phase 6 — Backend and Dashboard</b> ♡ PLANNED</summary>
-
-- Backend development.
-- Dashboard interface.
-- Review workflow.
-- Results visualization.
-
-</details>
+*Development status reflects the publicly available repository. Features under local development may not yet appear in the source code.*
 
 ## ୨୧ Getting started
 
 ### Requirements
 
-- Python 3.11
-- uv
+- Python 3.11 or compatible version
 - Git
-- Windows development environment
+- A YOLOX-Tiny ONNX model file
+- Windows or Linux environment
 
-### Installation
+### 1. Clone the repository
 
 ```bash
-# Clone the repository
 git clone https://github.com/kyutakou/NANAMI.git
-
-# Enter the project
 cd NANAMI
-
-# Create virtual environment
-uv venv .venv
-
-# Activate environment (Windows Git Bash)
-source .venv/Scripts/activate
-
-# Or Windows PowerShell
-.venv\Scripts\Activate.ps1
-
-# Install dependencies
-uv pip install -e ".[dev]"
 ```
 
-### Run detector test
+### 2. Create a virtual environment
 
 ```bash
-python scripts/try_detector.py --image path/to/consented_photo.jpg
+python -m venv .venv
 ```
 
-### Run tests
+Activate it:
+
+**Windows PowerShell**
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+**Linux**
+```bash
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install -r backend/requirements.txt
+pip install pytest
+```
+
+### 4. Add the model file
+
+Place your appropriately sourced YOLOX-Tiny ONNX model at:
+
+```text
+models/
+└── yolox_tiny/
+    └── yolox_tiny.onnx
+```
+
+Model weights are not included in this repository. Check the model's source and licensing terms before using or redistributing it.
+
+### 5. Run the detector
+
+```bash
+python scripts/try_detector.py path/to/consented_photo.jpg
+```
+
+The script runs detection, measures inference time, and saves an annotated image under `data/evidence/`.
+
+### 6. Run tests
 
 ```bash
 pytest
 ```
 
-## ୨୧ Privacy and ethical considerations
+Tests that require the external model file are skipped when the model is unavailable.
 
-NANAMI is designed around the principle that observing an event is not the same as knowing what happened.
+## ୨୧ Project structure
 
-The project deliberately avoids:
+```text
+NANAMI/
+├── backend/
+│   ├── app/
+│   │   └── modules/
+│   │       ├── detection/
+│   │       ├── tracking/
+│   │       ├── pose/
+│   │       └── analysis/
+│   ├── tests/
+│   └── requirements.txt
+├── data/
+│   ├── database/
+│   └── evidence/
+├── docs/
+│   └── LICENSING.md
+├── frontend/
+├── models/
+├── scripts/
+├── .gitignore
+├── pyproject.toml
+└── README.md
+```
+
+Some directories are placeholders for future development.
+
+## ୨୧ Privacy and ethics
+
+NANAMI is designed with privacy as a central research consideration.
+
+The project aims to avoid:
 
 - Facial recognition.
 - Real-world identity identification.
 - Personal identity databases.
 - Automated disciplinary decisions.
-- Default cloud-based footage uploads.
+- Unnecessary footage collection.
 
-Additional safeguards required for research deployment include:
+Responsible deployment would also require:
 
 - Appropriate consent and institutional approval.
-- Restricted access to footage and results.
-- Data minimization and defined retention periods.
-- Testing for false detections and tracking errors.
-- Human verification before interpreting any observation.
+- Restricted access to footage and research outputs.
+- Defined data-retention periods.
+- Data minimization.
+- Evaluation of false detections and tracking errors.
+- Human verification before interpreting system observations.
 
-NANAMI must not be used as an autonomous cheating detector or as the sole basis for disciplinary action.
+**Detection is not identification, and observation is not proof.**
+
+NANAMI is an experimental research prototype. It must not be used as an autonomous cheating detector or as the sole basis for disciplinary action.
 
 ## ୨୧ Limitations
 
-NANAMI is an experimental research prototype.
+The project is still under development. Its current limitations include:
 
-Its performance and reliability may be affected by:
+- Detection accuracy depends on image quality and environmental conditions.
+- Occlusion and overlapping people can affect detection.
+- Tracking performance has not yet been fully evaluated in the public repository.
+- The reported FPS is preliminary.
+- Pose estimation and behavioral analysis are not implemented.
+- No production-ready backend or dashboard is currently available.
 
-- Occlusion and overlapping people.
-- Lighting conditions.
-- Camera placement and viewing angle.
-- Detection confidence thresholds.
-- Tracking interruptions and ID switches.
-- Hardware limitations and processing speed.
+## ୨୧ Licensing
 
-A detection or tracking result does not establish intent or misconduct.
+The repository's licensing status is still being reviewed.
 
-## ୨୧ Repository structure
+See [`docs/LICENSING.md`](docs/LICENSING.md) for the component licensing register and outstanding verification tasks.
 
-```text
-NANAMI/
-├── scripts/
-│   └── try_detector.py
-├── README.md
-├── pyproject.toml
-└── ...
-```
-
-*The repository structure will expand as additional modules are implemented.*
-
-## ୨୧ Contributing and research
-
-NANAMI is being developed as a student research project.
-
-Suggestions, technical feedback, and discussions about computer vision, model performance, and responsible classroom technology are welcome.
-
-Please avoid submitting private classroom footage, identifiable student information, or sensitive personal data.
+Do not assume that the repository's code license automatically covers pretrained model weights or training datasets.
 
 ---
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0:FCE4EC,100:F48FB1&height=3&section=footer" width="100%"/>
+**Made with curiosity, code, and a little bit of pink.**
 
-**NANAMI** ♡
-
-*Seeing patterns. Preserving privacy.*
-
-Made with curiosity, Python, and a little bit of pink.
-
-<sub>© NANAMI Research Project · kyutakou</sub>
+*Keep your eyes on the pixels, not the people.*
 
 </div>
