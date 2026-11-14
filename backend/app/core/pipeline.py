@@ -2,25 +2,30 @@
 
 Each stage is injected, so any stage can be swapped without touching this file.
 Track IDs are temporary labels inside one video; they identify no one.
+
+Detections of class 0 (person) go to the tracker and then to pose. Detections of
+any other class are returned as `objects`: context for a human reviewer only. They
+never reach the tracker or the pose estimator.
 """
 from __future__ import annotations
 
 import logging
 import time
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import cv2
 import numpy as np
 
-from app.modules.detection.base import Detector
+from app.modules.detection.base import Detection, Detector
 from app.modules.pose.base import Pose, PoseEstimator
 from app.modules.tracking.base import TrackedBox, Tracker
 
 logger = logging.getLogger(__name__)
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}
+PERSON_CLASS = 0
 
 
 @dataclass(frozen=True)
@@ -34,6 +39,7 @@ class FrameResult:
     frame_index: int
     timestamp_s: float
     people: list[TrackedPerson]
+    objects: list[Detection] = field(default_factory=list)
 
 
 class Pipeline:
@@ -51,8 +57,10 @@ class Pipeline:
     def process(self, frame: np.ndarray, frame_index: int, timestamp_s: float) -> FrameResult:
         t0 = time.perf_counter()
         detections = self._detector.detect(frame)
+        person_dets = [d for d in detections if d.class_id == PERSON_CLASS]
+        objects = [d for d in detections if d.class_id != PERSON_CLASS]
         t1 = time.perf_counter()
-        tracked = self._tracker.update(detections)
+        tracked = self._tracker.update(person_dets)
         t2 = time.perf_counter()
         boxes = [(t.x1, t.y1, t.x2, t.y2) for t in tracked]
         poses = self._pose.estimate(frame, boxes) if boxes else []
@@ -62,7 +70,7 @@ class Pipeline:
         self.timings_ms["track"].append((t2 - t1) * 1000)
         self.timings_ms["pose"].append((t3 - t2) * 1000)
         people = [TrackedPerson(b, p) for b, p in zip(tracked, poses, strict=True)]
-        return FrameResult(frame_index, timestamp_s, people)
+        return FrameResult(frame_index, timestamp_s, people, objects)
 
 
 def iter_video(

@@ -1,8 +1,11 @@
-"""Run detector -> tracker -> pose over a video.
+"""Run detector -> tracker -> pose over a video, plus phone/book object context.
 
 Saves an annotated copy and a numbers-only track summary (CSV) under data/evidence/.
 Both outputs are derived from footage: keep them local and delete them on the
 same schedule as the source clip.
+
+Objects (phone, book) are context for a human reviewer. They are not tracked,
+get no pose, and say nothing about anyone's behaviour.
 """
 import argparse
 import logging
@@ -17,7 +20,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from app.core.pipeline import Pipeline, iter_video  # noqa: E402
 from app.core.track_summary import TrackSpans  # noqa: E402
-from app.modules.detection.yolox import YoloxDetector  # noqa: E402
+from app.modules.detection.yolox_objects import YoloxObjectDetector  # noqa: E402
 from app.modules.pose.rtmpose import RtmPoseEstimator  # noqa: E402
 from app.modules.tracking.bytetrack import ByteTracker  # noqa: E402
 
@@ -28,6 +31,7 @@ POSE_MODEL = (
 # Upper body only (COCO indices 0-10). Hips/knees/ankles are often hidden by desks
 # and the model still "guesses" them, so we neither draw nor use them.
 UPPER_EDGES = [(0, 1), (0, 2), (1, 3), (2, 4), (5, 6), (5, 7), (7, 9), (6, 8), (8, 10)]
+OBJECT_COLORS = {67: (255, 0, 255), 73: (0, 255, 255)}  # BGR: phone magenta, book yellow
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -45,6 +49,12 @@ def draw(frame, result, threshold):
         for k in range(11):
             if sc[k] >= threshold:
                 cv2.circle(frame, (int(kp[k][0]), int(kp[k][1])), 4, (0, 0, 255), -1)
+    for d in result.objects:
+        color = OBJECT_COLORS.get(d.class_id, (255, 255, 255))
+        p1, p2 = (int(d.x1), int(d.y1)), (int(d.x2), int(d.y2))
+        cv2.rectangle(frame, p1, p2, color, 2)
+        cv2.putText(frame, f"{d.label} {d.confidence:.2f}", (p1[0], max(p1[1] - 6, 14)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
 def main() -> None:
@@ -53,10 +63,16 @@ def main() -> None:
     parser.add_argument("--fps", type=float, default=5.0, help="frames per second to process")
     parser.add_argument("--max-seconds", type=float, default=None)
     parser.add_argument("--threshold", type=float, default=0.3, help="keypoint draw threshold")
+    parser.add_argument("--object-threshold", type=float, default=0.25,
+                        help="minimum score for phone/book boxes")
     args = parser.parse_args()
 
-    # Low detector threshold on purpose: ByteTrack uses weak detections to keep tracks alive.
-    detector = YoloxDetector(ROOT / "models" / "yolox_tiny" / "yolox_tiny.onnx", conf_threshold=0.1)
+    # People use a low threshold on purpose: ByteTrack uses weak detections to keep
+    # tracks alive. Objects use their own, higher threshold.
+    thresholds = {0: 0.1, 67: args.object_threshold, 73: args.object_threshold}
+    detector = YoloxObjectDetector(
+        ROOT / "models" / "yolox_tiny" / "yolox_tiny.onnx", thresholds=thresholds
+    )
     pipeline = Pipeline(detector, ByteTracker(), RtmPoseEstimator(POSE_MODEL))
 
     out_dir = ROOT / "data" / "evidence"
@@ -67,12 +83,17 @@ def main() -> None:
 
     writer, frames, ids = None, 0, Counter()
     spans = TrackSpans()
+    obj_frames: Counter = Counter()
+    obj_best: dict[str, float] = {}
 
     for index, ts, frame in iter_video(args.video, args.fps, args.max_seconds):
         result = pipeline.process(frame, index, ts)
         frames += 1
         ids.update(p.box.track_id for p in result.people)
         spans.add(result)
+        obj_frames.update({d.label for d in result.objects})
+        for d in result.objects:
+            obj_best[d.label] = max(obj_best.get(d.label, 0.0), d.confidence)
         draw(frame, result, args.threshold)
         if writer is None:
             h, w = frame.shape[:2]
@@ -98,6 +119,9 @@ def main() -> None:
     for r in spans.rows():
         print(f"  #{r['track_id']}: {r['first_s']}s to {r['last_s']}s, {r['frames_seen']} frames, "
               f"{r['gaps']} gaps, longest gap {r['longest_gap_frames']}")
+    print(f"\nObjects at score >= {args.object_threshold} (frames with a detection / frames, best score):")
+    for label in ("cell phone", "book"):
+        print(f"  {label:10s} {obj_frames[label]}/{frames} frames, best {obj_best.get(label, 0.0):.2f}")
     print("Saved:", out_path)
     print("Saved:", csv_path)
 

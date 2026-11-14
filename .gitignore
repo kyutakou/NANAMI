@@ -29,3 +29,5 @@ data/evidence/*
 *.tflite
 *.pb
 *.safetensors
+*.zip
+models/*/*/
